@@ -1,6 +1,8 @@
 ## Version 0.10.1
 
 - Updated dependencies, thanks to Alex Touchet for his help!
+- Increased minimum Rust version to 1.67 as this is required by the latest versions of our dependencies
+
 
 ## Version 0.10.0
 
