@@ -608,4 +608,32 @@ mod complex_test {
             assert_vector_eq_with_reason_and_tolerance(&a, vector2.data(..), 1e-4, "Merge differs");
         });
     }
+
+    #[test]
+    fn capacity_and_len_in_vec() {
+        let mut vec = Vec::with_capacity(10);
+        vec.push(1.0);
+        vec.push(2.0);
+        vec.push(3.0);
+        vec.push(4.0);
+        let vec = vec.to_complex_time_vec();
+        assert_eq!(4, vec.len());
+        assert_eq!(2, vec.points());
+        assert_eq!(10, vec.alloc_len());
+
+        let mut target = Vec::with_capacity(10);
+        target.push(1.0);
+        target.push(2.0);
+        target.push(3.0);
+        let mut target = target.to_real_time_vec();
+        assert_eq!(3, target.len());
+        assert_eq!(3, target.points());
+        assert_eq!(10, target.alloc_len());
+
+        vec.get_magnitude_squared(&mut target);
+        assert_eq!(2, target.len());
+        assert_eq!(2, target.points());
+        assert_eq!(10, target.alloc_len());
+
+    }
 }

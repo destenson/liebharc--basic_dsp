@@ -544,7 +544,7 @@ where
         destination.set_delta(self.delta);
         let temp = destination.data_mut(0..data_length / 2);
         let array = &self.data.to_slice();
-        let partition = Reg::calc_data_alignment_reqs(array);
+        let partition = Reg::calc_data_alignment_reqs(&array[0..data_length]);
         Chunk::from_src_to_dest(
             complexity,
             &self.multicore_settings,
