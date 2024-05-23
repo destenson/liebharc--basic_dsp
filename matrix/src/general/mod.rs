@@ -2,9 +2,7 @@ use super::*;
 use crate::IntoFixedLength;
 
 mod elementary;
-pub use self::elementary::*;
 mod statistics;
-pub use self::statistics::*;
 
 impl<S: ToSlice<T>, V: Vector<T>, T: RealNumber, N: NumberSpace, D: Domain>
     DotProductOps<MatrixMxN<V, S, T>, T, T, N, D> for MatrixMxN<V, S, T>

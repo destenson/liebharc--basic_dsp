@@ -18,15 +18,10 @@ pub use self::mat_impl::*;
 mod to_from_mat_conversions;
 pub use self::to_from_mat_conversions::*;
 mod general;
-pub use self::general::*;
 mod rededicate;
-pub use self::rededicate::*;
 mod complex;
-pub use self::complex::*;
 mod real;
-pub use self::real::*;
 mod time_freq;
-pub use self::time_freq::*;
 
 /// A matrix which can hold 1 to N vectors.
 pub struct MatrixMxN<V, S, T>

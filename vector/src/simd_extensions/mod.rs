@@ -5,7 +5,7 @@ use std;
 use std::mem;
 use std::ops::*;
 mod simd_partition;
-pub use self::simd_partition::{EdgeIteratorMut, IndexedEdgeIteratorMut, SimdPartition};
+pub use self::simd_partition::{IndexedEdgeIteratorMut, SimdPartition};
 
 /// SIMD methods which have `f32` or `f64` specific implementation.
 pub trait Simd<T>: Sized
