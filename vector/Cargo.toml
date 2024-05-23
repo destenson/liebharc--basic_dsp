@@ -1,6 +1,6 @@
 [package]
 name = "basic_dsp_vector"
-version = "0.10.0"
+version = "0.10.1"
 authors = ["Christian Liebhardt"]
 license = "MIT/Apache-2.0"
 homepage = "https://github.com/liebharc/basic_dsp"
@@ -28,12 +28,12 @@ std = ["crossbeam", "lazy_static", "num_cpus", "time", "linreg"]
 
 [dependencies]
 packed_simd = { version = "^0.3.9", optional = true }
-ocl = { version = "^0.19.0", optional = true }
+ocl = { version = "^0.19.7", optional = true }
 clfft = { version = "^0.3.3", optional = true }
-crossbeam = { version="^0.8.1", optional = true }
+crossbeam = { version="^0.8.4", optional = true }
 lazy_static = { version="^1.4.0", optional = true }
-time = { version="^0.3.0", optional = true }
-num_cpus = { version="^1.13.0", optional = true }
+time = { version="^0.3.36", optional = true }
+num_cpus = { version="^1.16.0", optional = true }
 linreg  = { version="^0.2.0", optional = true }
 num-traits = "^0.2"
 num-complex = "^0.4"

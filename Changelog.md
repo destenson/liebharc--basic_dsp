@@ -1,3 +1,7 @@
+## Version 0.10.1
+
+- Updated dependencies, thanks to Alex Touchet for his help!
+
 ## Version 0.10.0
 
 - Fixed compilation error on ARM Neon which includes Apples M1 (https://github.com/liebharc/basic_dsp/issues/49), thanks to Andy Bailey for reporting this issue and for doing tests!
