@@ -20,13 +20,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: hecrj/setup-rust-action@v2
         with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
+          rust-version: ${{ matrix.rust }}
 
       - name: Run tests
         run: make test
