@@ -252,7 +252,7 @@ impl Simd<f64> for f64x4 {
 
         let parallel = scaling_real * value;
         let shuffled = value.swap_iq();
-        let cross = scaling_imag * shuffled;        
+        let cross = scaling_imag * shuffled;
         let mul: f64x4 = unsafe {
             mem::transmute(_mm256_addsub_pd(
                 mem::transmute(parallel),
@@ -271,8 +271,8 @@ impl Simd<f64> for f64x4 {
         let squared = self * self;
         unsafe {
             mem::transmute(_mm256_hadd_pd(
-                        mem::transmute(squared),
-                        mem::transmute(squared),
+                mem::transmute(squared),
+                mem::transmute(squared),
             ))
         }
     }
@@ -394,7 +394,7 @@ mod tests {
         assert_eq!(result[4], complex3.norm());
         assert_eq!(result[5], complex4.norm());
     }
-    
+
     #[test]
     fn complex_abs_squared_f32() {
         let vec = f32x8::from_array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);

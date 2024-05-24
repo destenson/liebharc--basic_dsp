@@ -305,7 +305,7 @@ mod tests {
         assert_eq!(result_values[2], vec_values[3]);
         assert_eq!(result_values[3], vec_values[2]);
     }
-    
+
     #[test]
     fn complex_abs_squared_f32() {
         let vec = f32x4::from_array([1.0, 2.0, 3.0, 4.0]);
