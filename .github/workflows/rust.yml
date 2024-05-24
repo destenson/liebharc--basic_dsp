@@ -19,12 +19,10 @@ jobs:
           - 1.67.0
 
     steps:
-      - uses: actions/checkout@v2
-      - name: rustup
-        run: rustup update
-      - uses: hecrj/setup-rust-action@v2
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          rust-version: ${{ matrix.rust }}
+          toolchain: ${{ matrix.rust }}
 
       - name: Run tests
         run: make test
