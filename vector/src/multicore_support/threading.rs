@@ -10,7 +10,7 @@ use std::mem;
 use std::ops::Range;
 use std::slice::{Chunks, ChunksMut};
 use std::sync::{Arc, Mutex};
-use time::Instant;
+use std::time::Instant;
 
 /// Calibration information which determines when multi threaded code will be used.
 #[derive(Debug, PartialEq)]
@@ -41,7 +41,7 @@ fn measure(number_of_cores: usize, data: &mut Vec<f64>) -> Result<f64, u32> {
             *v = v.sin();
         }
     });
-    let result = start.elapsed().whole_nanoseconds() as f64;
+    let result = start.elapsed().as_nanos() as f64;
     if result < 1000.0 {
         Err(1) // Likely the compiler optimized our benchmark code away so we have to work with defaults
     } else {
@@ -171,7 +171,7 @@ fn calibrate(number_of_cores: usize) -> Calibration {
     let start = Instant::now();
     match attempt_calibrate(number_of_cores) {
         Ok(mut calibration) => {
-            calibration.duration_cal_routine = (start.elapsed().whole_nanoseconds() as f64) / 1e9;
+            calibration.duration_cal_routine = (start.elapsed().as_nanos() as f64) / 1e9;
             calibration
         }
         Err(err_code) => Calibration {
@@ -179,7 +179,7 @@ fn calibrate(number_of_cores: usize) -> Calibration {
             med_multi_core_threshold: MED_MULTI_CORE_DEFAULT,
             large_dual_core_threshold: LARGE_DUAL_CORE_DEFAULT,
             large_multi_core_threshold: LARGE_MULTI_CORE_DEFAULT,
-            duration_cal_routine: (start.elapsed().whole_nanoseconds() as f64) / 1e9,
+            duration_cal_routine: (start.elapsed().as_nanos() as f64) / 1e9,
             cal_routine_result_code: err_code,
         },
     }

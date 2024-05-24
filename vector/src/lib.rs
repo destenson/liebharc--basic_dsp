@@ -85,8 +85,6 @@ extern crate ocl;
 #[cfg(feature = "use_simd")]
 extern crate packed_simd;
 extern crate rustfft;
-#[cfg(feature = "std")]
-extern crate time;
 #[macro_use]
 mod simd_extensions;
 pub mod conv_types;
