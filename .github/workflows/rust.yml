@@ -27,7 +27,5 @@ jobs:
         run: make test
       - name: Run benchmarks
         run: make bench
-      - name: Run LINTs
-        run: make clippy
       - name: Make docs
         run: cargo doc -p basic_dsp -p basic_dsp_vector -p basic_dsp_matrix --no-deps --no-default-features --features std,matrix

@@ -54,15 +54,6 @@ else
 	$(CARGO_CMD) clean --manifest-path vector/Cargo.toml    
 	$(CARGO_CMD) build --manifest-path vector/Cargo.toml --no-default-features
 endif
-	
-clippy:
-ifeq ($(RUST_NIGHTLY), nightly)
-	#$(CARGO_CMD) clean 
-	#$(CARGO_CMD) clippy --no-default-features --features std,use_sse2,matrix
-	@echo "Skipping clippy due to issue in nightly: component 'clippy' for target 'x86_64-unknown-linux-gnu' is unavailable for download"
-else
-	@echo "Skipping clippy for $(RUST_VERSION)"	
-endif	
     
 test_all: test
 ifeq ($(RUST_NIGHTLY), nightly)
