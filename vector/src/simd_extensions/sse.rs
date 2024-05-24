@@ -38,12 +38,6 @@ impl Simd<f32> for f32x4 {
     }
 
     #[inline]
-    fn add_complex(self, value: Complex<f32>) -> f32x4 {
-        let increment = f32x4::from_array([value.re, value.im, value.re, value.im]);
-        self + increment
-    }
-
-    #[inline]
     fn scale_real(self, value: f32) -> f32x4 {
         let scale_vector = f32x4::splat(value);
         self * scale_vector
@@ -181,12 +175,6 @@ impl Simd<f64> for f64x2 {
     #[inline]
     fn add_real(self, value: f64) -> f64x2 {
         let increment = f64x2::splat(value);
-        self + increment
-    }
-
-    #[inline]
-    fn add_complex(self, value: Complex<f64>) -> f64x2 {
-        let increment = f64x2::from_array([value.re, value.im]);
         self + increment
     }
 

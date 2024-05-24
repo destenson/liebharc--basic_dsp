@@ -28,9 +28,6 @@ where
     /// Add a real number to the register.
     fn add_real(self, value: T) -> Self;
 
-    /// Add a complex number to the register.
-    fn add_complex(self, value: Complex<T>) -> Self;
-
     /// Scale the register by a real number.
     fn scale_real(self, value: T) -> Self;
 
@@ -64,15 +61,19 @@ where
     /// are complex valued.
     fn sum_complex(&self) -> Complex<T>;
 
+    #[allow(unused)]
     fn max(self, other: Self) -> Self;
 
+    #[allow(unused)]
     fn min(self, other: Self) -> Self;
 
     // Swaps I and Q (or Real and Imag) of a complex vector
+    #[allow(unused)]
     fn swap_iq(self) -> Self;
 }
 
-/// Dirty workaround since the stdsimd doesn't implement conversion traits (yet?).
+/// Workaround since the stdsimd doesn't implement conversion traits (yet?).
+#[allow(unused)]
 pub trait SimdFrom<T> {
     fn regfrom(src: T) -> Self;
 }
@@ -104,13 +105,6 @@ where
     /// into a SIMD register.
     fn from_array(array: Self::Array) -> Self;
 
-    /// Converts the SIMD register into a complex valued array.
-    fn to_complex_array(self) -> Self::ComplexArray;
-
-    /// Converts a complex valued array which has exactly the size of a SIMD register
-    /// into a SIMD register.
-    fn from_complex_array(array: Self::ComplexArray) -> Self;
-
     /// Executed the given function on each element of the register.
     /// Register elements are assumed to be real valued.
     fn iter_over_vector<F>(self, op: F) -> Self
@@ -131,9 +125,6 @@ where
 
     /// Loads a SIMD register from an array without any bound checks.
     fn load(array: &[T], idx: usize) -> Self;
-
-    /// Stores a SIMD register into an array.
-    fn store(self, array: &mut [T], index: usize);
 
     /// Returns one element from the register.
     fn extract(self, idx: usize) -> T;
@@ -204,16 +195,6 @@ macro_rules! simd_generic_impl {
             }
 
             #[inline]
-            fn to_complex_array(self) -> Self::ComplexArray {
-                unsafe { mem::transmute(self.to_array()) }
-            }
-
-            #[inline]
-            fn from_complex_array(array: Self::ComplexArray) -> Self {
-                Self::from_array(unsafe { mem::transmute(array) })
-            }
-
-            #[inline]
             fn iter_over_vector<F>(self, mut op: F) -> Self
             where
                 F: FnMut($data_type) -> $data_type,
@@ -254,11 +235,6 @@ macro_rules! simd_generic_impl {
             #[inline]
             fn load(array: &[$data_type], idx: usize) -> Self {
                 Self::from_slice(&array[idx..idx + Self::LEN])
-            }
-
-            #[inline]
-            fn store(self, array: &mut [$data_type], index: usize) {
-                self.copy_to_slice(&mut array[index..index + Self::LEN])
             }
 
             #[inline]

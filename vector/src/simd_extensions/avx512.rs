@@ -44,12 +44,6 @@ impl Simd<f32> for f32x16 {
     }
 
     #[inline]
-    fn add_complex(self, value: Complex<f32>) -> f32x16 {
-        let increment = f32x16::from_complex(value);
-        self + increment
-    }
-
-    #[inline]
     fn scale_real(self, value: f32) -> f32x16 {
         let scale_vector = f32x16::splat(value);
         self * scale_vector
@@ -297,14 +291,6 @@ impl Simd<f64> for f64x8 {
     }
 
     #[inline]
-    fn add_complex(self, value: Complex<f64>) -> f64x8 {
-        let increment = f64x8::from_array([
-            value.re, value.im, value.re, value.im, value.re, value.im, value.re, value.im,
-        ]);
-        self + increment
-    }
-
-    #[inline]
     fn scale_real(self, value: f64) -> f64x8 {
         let scale_vector = f64x8::splat(value);
         self * scale_vector
@@ -457,7 +443,7 @@ impl Simd<f64> for f64x8 {
 
     #[inline]
     fn swap_iq(self) -> Self {
-        unsafe { mem::transmute(_mm512_permute_pd(mem::transmute(self), SWAP_IQ_PS)) }
+        unsafe { mem::transmute(_mm512_permute_pd(mem::transmute(self), SWAP_IQ_PD)) }
     }
 }
 
