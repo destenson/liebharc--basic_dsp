@@ -1,14 +1,12 @@
 extern crate basic_dsp;
 extern crate docopt;
 extern crate rand;
-extern crate time;
 
 use basic_dsp::*;
 use docopt::Docopt;
 use rand::prelude::*;
 use std::collections::HashMap;
 use std::env;
-use time::PreciseTime;
 const INIT_VAL_RANGE: (f64, f64) = (-100.0, 100.0);
 
 const USAGE: &'static str = "
@@ -28,18 +26,20 @@ Options:
 fn bench_real<F: FnMut(RealTimeVec64)>(
     name: &'static str,
     data: &Vec<f64>,
-    results: &mut HashMap<&'static str, Vec<i64>>,
+    results: &mut HashMap<&'static str, Vec<u128>>,
     mut func: F,
 ) {
     let mut dsp = data.clone().to_real_time_vec();
     let mut settings = dsp.get_multicore_settings().clone();
     settings.core_limit = 1;
     dsp.set_multicore_settings(settings);
-    let start = PreciseTime::now();
+    let start = std::time::Instant::now();
     func(dsp);
-    let end = PreciseTime::now();
-    let duration = start.to(end).num_nanoseconds().unwrap();
-    results.entry(name).or_insert(Vec::new()).push(duration);
+    let duration = start.elapsed();
+    results
+        .entry(name)
+        .or_insert(Vec::new())
+        .push(duration.as_nanos());
 }
 
 fn create_pseudo_random_data(data_set_size: usize, seed: usize) -> Vec<f64> {
@@ -74,7 +74,7 @@ fn main() {
         0
     };
 
-    let mut results: HashMap<&'static str, Vec<i64>, _> = HashMap::new();
+    let mut results: HashMap<&'static str, Vec<u128>, _> = HashMap::new();
 
     let data_sizes: Vec<usize> = vec![
         1000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 200000,

@@ -40,7 +40,6 @@ rand = "^0.6.4"
 hound = "^3.4.0"
 docopt = "^1.1.0"
 num = "^0.4"
-time = "^0.1"
 
 [features]
 use_avx512 = ["basic_dsp_vector/use_avx512"]
