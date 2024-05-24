@@ -1,6 +1,3 @@
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::excessive_precision))]
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
-
 // This source code is a conversion from C to Rust with. The original C code
 // can be found here https://github.com/RJVB/sse_mathfun
 // The intrinsics are documented here: https://software.intel.com/sites/landingpage/IntrinsicsGuide/

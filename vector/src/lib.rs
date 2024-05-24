@@ -66,9 +66,6 @@
 //! complex vectors in time domain, but not with real valued vectors or frequency domain vectors.
 //! And the type `GenDspVec` serves as wild card at compile time since it defers all checks to run time.
 
-#![cfg_attr(feature = "cargo-clippy", feature(tool_lints))]
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::new_without_default_derive))] // This LINT gives false positives
-
 extern crate arrayvec;
 #[cfg(feature = "use_gpu")]
 extern crate clfft;

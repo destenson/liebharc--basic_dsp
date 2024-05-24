@@ -1,5 +1,3 @@
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::toplevel_ref_arg))]
-
 use super::Complexity;
 use crate::inline_vector::InlineVector;
 use crate::numbers::*;
@@ -231,7 +229,6 @@ impl Chunk {
     /// Executes the given function on the all elements of the array in parallel and passes
     /// the argument to all function calls.. Results are intended to be stored in the target array.
     #[inline]
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::too_many_arguments))]
     pub fn from_src_to_dest<'a, T, S, F>(
         _: Complexity,
         _: &MultiCoreSettings,

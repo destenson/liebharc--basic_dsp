@@ -187,7 +187,6 @@ where
     N: NumberSpace,
     D: Domain,
 {
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::too_many_arguments))]
     fn interpolate_priv_simd<Reg: SimdGeneric<T>, TT, C, CMut, RMul, RSum, B>(
         &mut self,
         _: RegType<Reg>,

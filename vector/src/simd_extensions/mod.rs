@@ -119,12 +119,6 @@ where
     where
         F: FnMut(T) -> T;
 
-    /// Executed the given function on each element of the register.
-    /// Register elements are assumed to be complex valued.
-    fn iter_over_complex_vector<F>(self, op: F) -> Self
-    where
-        F: FnMut(Complex<T>) -> Complex<T>;
-
     /// Converts an array slice into a slice of SIMD registers.
     ///
     /// WARNING: `calc_data_alignment_reqs` must have been used before to ensure that
@@ -174,6 +168,7 @@ pub trait SimdApproximations<T> {
     /// Since the implementation of sine and cosine is almost identical
     /// the implementation is easier with a boolean `is_sin` flag which
     /// determines if the sine or cosine is requried.
+    #[allow(unused)]
     fn sin_cos_approx(self, is_sin: bool) -> Self;
 }
 
@@ -230,18 +225,6 @@ macro_rules! simd_generic_impl {
                     *n = op(*n);
                 }
                 Self::from_array(array)
-            }
-
-            #[inline]
-            fn iter_over_complex_vector<F>(self, mut op: F) -> Self
-            where
-                F: FnMut(Complex<$data_type>) -> Complex<$data_type>,
-            {
-                let mut array = self.to_complex_array();
-                for n in &mut array[0..Self::LEN / 2] {
-                    *n = op(*n);
-                }
-                Self::from_complex_array(array)
             }
 
             #[inline]

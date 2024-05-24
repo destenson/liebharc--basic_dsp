@@ -4,12 +4,10 @@ use std::ops::*;
 
 #[allow(non_camel_case_types)]
 // To stay consistent with the `simd` crate
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
 pub struct f32x4(f32, f32, f32, f32);
 
 #[allow(non_camel_case_types)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
 pub struct f64x2(f64, f64);
 
