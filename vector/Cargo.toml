@@ -22,12 +22,11 @@ default = ["std"]
 use_avx2 = ["use_simd"]
 use_avx512 = ["use_simd"]
 use_sse2 = ["use_simd"]
-use_simd = ["packed_simd"]
+use_simd = []
 use_gpu = ["ocl", "clfft"]
 std = ["crossbeam", "lazy_static", "num_cpus", "linreg"]
 
 [dependencies]
-packed_simd = { version = "^0.3.9", optional = true }
 ocl = { version = "^0.19.7", optional = true }
 clfft = { version = "^0.3.3", optional = true }
 crossbeam = { version="^0.8.4", optional = true }

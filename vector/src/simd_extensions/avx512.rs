@@ -1,9 +1,11 @@
 use super::{Simd, SimdFrom};
 use crate::numbers::*;
-pub use packed_simd::{f32x16, f64x8};
-use packed_simd::{i32x16, i64x8, FromCast};
 use std::arch::x86_64::*;
 use std::mem;
+use std::simd::num::{SimdFloat, SimdInt};
+use std::simd::StdFloat;
+pub use std::simd::{f32x16, f64x8};
+use std::simd::{i32x16, i64x8};
 
 /// This value must be read in groups of 2 bits.
 const SWAP_IQ_PS: i32 = 0b1011_0001;
@@ -19,7 +21,7 @@ impl Simd<f32> for f32x16 {
     #[inline]
     fn to_array(self) -> Self::Array {
         let mut target = [0.0; 16];
-        self.store(&mut target, 0);
+        self.copy_to_slice(&mut target);
         target
     }
 
@@ -29,10 +31,10 @@ impl Simd<f32> for f32x16 {
 
     #[inline]
     fn from_complex(value: Complex<f32>) -> f32x16 {
-        f32x16::new(
+        f32x16::from_array([
             value.re, value.im, value.re, value.im, value.re, value.im, value.re, value.im,
             value.re, value.im, value.re, value.im, value.re, value.im, value.re, value.im,
-        )
+        ])
     }
 
     #[inline]
@@ -58,183 +60,212 @@ impl Simd<f32> for f32x16 {
         let scaling_real = f32x16::splat(value.re);
         let scaling_imag = f32x16::splat(value.im);
         let parallel = scaling_real * self;
-        let shuffled = unsafe { _mm512_permute_ps(self, SWAP_IQ_PS) };
+        let shuffled = self.swap_iq();
         let cross = scaling_imag * shuffled;
-        unsafe { _mm512_addsub_ps(parallel, cross) }
+        let ones = f32x16::splat(1.0);
+        unsafe {
+            mem::transmute(_mm512_fmaddsub_ps(
+                mem::transmute(parallel),
+                mem::transmute(ones),
+                mem::transmute(cross),
+            ))
+        }
     }
-
     #[inline]
     fn mul_complex(self, value: f32x16) -> f32x16 {
-        let scaling_real = f32x16::new(
-            value.extract(0),
-            value.extract(0),
-            value.extract(2),
-            value.extract(2),
-            value.extract(4),
-            value.extract(4),
-            value.extract(6),
-            value.extract(6),
-            value.extract(8),
-            value.extract(8),
-            value.extract(10),
-            value.extract(10),
-            value.extract(12),
-            value.extract(12),
-            value.extract(14),
-            value.extract(14),
-        );
-        let scaling_imag = f32x16::new(
-            value.extract(1),
-            value.extract(1),
-            value.extract(3),
-            value.extract(3),
-            value.extract(5),
-            value.extract(5),
-            value.extract(7),
-            value.extract(7),
-            value.extract(9),
-            value.extract(9),
-            value.extract(11),
-            value.extract(11),
-            value.extract(13),
-            value.extract(13),
-            value.extract(15),
-            value.extract(15),
-        );
+        let value_arr = value.as_array();
+        let scaling_real = f32x16::from_array([
+            value_arr[0],
+            value_arr[0],
+            value_arr[2],
+            value_arr[2],
+            value_arr[4],
+            value_arr[4],
+            value_arr[6],
+            value_arr[6],
+            value_arr[8],
+            value_arr[8],
+            value_arr[10],
+            value_arr[10],
+            value_arr[12],
+            value_arr[12],
+            value_arr[14],
+            value_arr[14],
+        ]);
+        let scaling_imag = f32x16::from_array([
+            value_arr[1],
+            value_arr[1],
+            value_arr[3],
+            value_arr[3],
+            value_arr[5],
+            value_arr[5],
+            value_arr[7],
+            value_arr[7],
+            value_arr[9],
+            value_arr[9],
+            value_arr[11],
+            value_arr[11],
+            value_arr[13],
+            value_arr[13],
+            value_arr[15],
+            value_arr[15],
+        ]);
         let parallel = scaling_real * self;
-        let shuffled = unsafe { _mm512_permute_ps(self, SWAP_IQ_PS) };
+        let shuffled = self.swap_iq();
         let cross = scaling_imag * shuffled;
-        unsafe { _mm512_addsub_ps(parallel, cross) }
+        let ones = f32x16::splat(1.0);
+        unsafe {
+            mem::transmute(_mm512_fmaddsub_ps(
+                mem::transmute(parallel),
+                mem::transmute(ones),
+                mem::transmute(cross),
+            ))
+        }
     }
 
     #[inline]
     fn div_complex(self, value: f32x16) -> f32x16 {
-        let scaling_real = f32x16::new(
-            value.extract(0),
-            value.extract(0),
-            value.extract(2),
-            value.extract(2),
-            value.extract(4),
-            value.extract(4),
-            value.extract(6),
-            value.extract(6),
-            value.extract(8),
-            value.extract(8),
-            value.extract(10),
-            value.extract(10),
-            value.extract(12),
-            value.extract(12),
-            value.extract(14),
-            value.extract(14),
-        );
-        let scaling_imag = f32x16::new(
-            value.extract(1),
-            value.extract(1),
-            value.extract(3),
-            value.extract(3),
-            value.extract(5),
-            value.extract(5),
-            value.extract(7),
-            value.extract(7),
-            value.extract(9),
-            value.extract(9),
-            value.extract(11),
-            value.extract(11),
-            value.extract(13),
-            value.extract(13),
-            value.extract(15),
-            value.extract(15),
-        );
+        let value_arr = value.as_array();
+        let scaling_real = f32x16::from_array([
+            value_arr[0],
+            value_arr[0],
+            value_arr[2],
+            value_arr[2],
+            value_arr[4],
+            value_arr[4],
+            value_arr[6],
+            value_arr[6],
+            value_arr[8],
+            value_arr[8],
+            value_arr[10],
+            value_arr[10],
+            value_arr[12],
+            value_arr[12],
+            value_arr[14],
+            value_arr[14],
+        ]);
+        let scaling_imag = f32x16::from_array([
+            value_arr[1],
+            value_arr[1],
+            value_arr[3],
+            value_arr[3],
+            value_arr[5],
+            value_arr[5],
+            value_arr[7],
+            value_arr[7],
+            value_arr[9],
+            value_arr[9],
+            value_arr[11],
+            value_arr[11],
+            value_arr[13],
+            value_arr[13],
+            value_arr[15],
+            value_arr[15],
+        ]);
         let parallel = scaling_real * value;
-        let shuffled = unsafe { _mm512_permute_ps(value, SWAP_IQ_PS) };
+        let shuffled = self.swap_iq();
         let cross = scaling_imag * shuffled;
-        let mul = unsafe { _mm512_addsub_ps(parallel, cross) };
+        let ones = f32x16::splat(1.0);
+        let mul: f32x16 = unsafe {
+            mem::transmute(_mm512_fmaddsub_ps(
+                mem::transmute(parallel),
+                mem::transmute(ones),
+                mem::transmute(cross),
+            ))
+        };
         let square = shuffled * shuffled;
-        let square_shuffled = unsafe { _mm512_permute_ps(square, SWAP_IQ_PS) };
+        let square_shuffled = square.swap_iq();
         let sum = square + square_shuffled;
         let div = mul / sum;
-        unsafe { _mm512_permute_ps(div, SWAP_IQ_PS) }
+        div.swap_iq()
     }
 
     #[inline]
     fn complex_abs_squared(self) -> f32x16 {
         let squared = self * self;
-        unsafe { _mm512_hadd_ps(squared, squared) }
+        let ones = f32x16::splat(1.0);
+        unsafe {
+            mem::transmute(_mm512_fmaddsub_ps(
+                mem::transmute(squared),
+                mem::transmute(ones),
+                mem::transmute(squared),
+            ))
+        }
     }
 
     #[inline]
     fn complex_abs(self) -> f32x16 {
         let squared_sum = self.complex_abs_squared();
-        unsafe { _mm512_sqrt_ps(squared_sum) }
+        StdFloat::sqrt(squared_sum)
     }
 
     #[inline]
     fn sqrt(self) -> f32x16 {
-        unsafe { _mm512_sqrt_ps(self) }
+        StdFloat::sqrt(self)
     }
-
     #[inline]
     fn store_half(self, target: &mut [f32], index: usize) {
-        target[index] = self.extract(0);
-        target[index + 1] = self.extract(1);
-        target[index + 2] = self.extract(2);
-        target[index + 3] = self.extract(3);
-        target[index + 4] = self.extract(4);
-        target[index + 5] = self.extract(5);
-        target[index + 6] = self.extract(6);
-        target[index + 7] = self.extract(7);
+        let values = self.as_array();
+        for (i, &value) in values.iter().enumerate() {
+            target[index + i] = value;
+        }
     }
-
     #[inline]
     fn sum_real(&self) -> f32 {
-        self.extract(0)
-            + self.extract(1)
-            + self.extract(2)
-            + self.extract(3)
-            + self.extract(4)
-            + self.extract(5)
-            + self.extract(6)
-            + self.extract(7)
-            + self.extract(8)
-            + self.extract(9)
-            + self.extract(10)
-            + self.extract(11)
-            + self.extract(12)
-            + self.extract(13)
-            + self.extract(14)
-            + self.extract(15)
+        let values = self.as_array();
+        values[0]
+            + values[1]
+            + values[2]
+            + values[3]
+            + values[4]
+            + values[5]
+            + values[6]
+            + values[7]
+            + values[8]
+            + values[9]
+            + values[10]
+            + values[11]
+            + values[12]
+            + values[13]
+            + values[14]
+            + values[15]
     }
-
     #[inline]
     fn sum_complex(&self) -> Complex<f32> {
+        let values = self.as_array();
         Complex::<f32>::new(
-            self.extract(0)
-                + self.extract(2)
-                + self.extract(4)
-                + self.extract(6)
-                + self.extract(8)
-                + self.extract(10)
-                + self.extract(12)
-                + self.extract(14),
-            self.extract(1)
-                + self.extract(3)
-                + self.extract(5)
-                + self.extract(7)
-                + self.extract(9)
-                + self.extract(11)
-                + self.extract(13)
-                + self.extract(15),
+            values[0]
+                + values[2]
+                + values[4]
+                + values[6]
+                + values[8]
+                + values[10]
+                + values[12]
+                + values[14],
+            values[1]
+                + values[3]
+                + values[5]
+                + values[7]
+                + values[9]
+                + values[11]
+                + values[13]
+                + values[15],
         )
     }
 
     #[inline]
     fn max(self, other: Self) -> Self {
-        self.max(other)
+        self.simd_max(other)
     }
 
     #[inline]
     fn min(self, other: Self) -> Self {
-        self.min(other)
+        self.simd_min(other)
+    }
+
+    #[inline]
+    fn swap_iq(self) -> Self {
+        unsafe { mem::transmute(_mm512_permute_ps(mem::transmute(self), SWAP_IQ_PS)) }
     }
 }
 
@@ -244,7 +275,7 @@ impl Simd<f64> for f64x8 {
     #[inline]
     fn to_array(self) -> Self::Array {
         let mut target = [0.0; 8];
-        self.store(&mut target, 0);
+        self.copy_to_slice(&mut target);
         target
     }
 
@@ -254,7 +285,9 @@ impl Simd<f64> for f64x8 {
 
     #[inline]
     fn from_complex(value: Complex<f64>) -> f64x8 {
-        f64x8::new(value.re, value.im, value.re, value.im)
+        f64x8::from_array([
+            value.re, value.im, value.re, value.im, value.re, value.im, value.re, value.im,
+        ])
     }
 
     #[inline]
@@ -265,9 +298,9 @@ impl Simd<f64> for f64x8 {
 
     #[inline]
     fn add_complex(self, value: Complex<f64>) -> f64x8 {
-        let increment = f64x8::new(
+        let increment = f64x8::from_array([
             value.re, value.im, value.re, value.im, value.re, value.im, value.re, value.im,
-        );
+        ]);
         self + increment
     }
 
@@ -282,148 +315,172 @@ impl Simd<f64> for f64x8 {
         let scaling_real = f64x8::splat(value.re);
         let scaling_imag = f64x8::splat(value.im);
         let parallel = scaling_real * self;
-        let shuffled = unsafe { _mm512_permute_pd(self, SWAP_IQ_PD) };
+        let shuffled = self.swap_iq();
         let cross = scaling_imag * shuffled;
-        unsafe { _mm512_addsub_pd(parallel, cross) }
+        let ones = f32x16::splat(1.0);
+        unsafe {
+            mem::transmute(_mm512_fmaddsub_pd(
+                mem::transmute(parallel),
+                mem::transmute(ones),
+                mem::transmute(cross),
+            ))
+        }
     }
 
     #[inline]
     fn mul_complex(self, value: f64x8) -> f64x8 {
-        let scaling_real = f64x8::new(
-            value.extract(0),
-            value.extract(0),
-            value.extract(2),
-            value.extract(2),
-            value.extract(4),
-            value.extract(4),
-            value.extract(6),
-            value.extract(6),
-        );
-        let scaling_imag = f64x8::new(
-            value.extract(1),
-            value.extract(1),
-            value.extract(3),
-            value.extract(3),
-            value.extract(5),
-            value.extract(5),
-            value.extract(7),
-            value.extract(7),
-        );
+        let value_arr = value.as_array();
+        let scaling_real = f64x8::from_array([
+            value_arr[0],
+            value_arr[0],
+            value_arr[2],
+            value_arr[2],
+            value_arr[4],
+            value_arr[4],
+            value_arr[6],
+            value_arr[6],
+        ]);
+        let scaling_imag = f64x8::from_array([
+            value_arr[1],
+            value_arr[1],
+            value_arr[3],
+            value_arr[3],
+            value_arr[5],
+            value_arr[5],
+            value_arr[7],
+            value_arr[7],
+        ]);
         let parallel = scaling_real * self;
-        let shuffled = unsafe { _mm512_permute_pd(self, SWAP_IQ_PD) };
+        let shuffled = self.swap_iq();
+        let ones = f32x16::splat(1.0);
         let cross = scaling_imag * shuffled;
-        unsafe { _mm512_addsub_pd(parallel, cross) }
+        unsafe {
+            mem::transmute(_mm512_fmaddsub_pd(
+                mem::transmute(parallel),
+                mem::transmute(ones),
+                mem::transmute(cross),
+            ))
+        }
     }
 
     #[inline]
     fn div_complex(self, value: f64x8) -> f64x8 {
-        let scaling_imag = f64x8::new(
-            self.extract(0),
-            self.extract(0),
-            self.extract(2),
-            self.extract(2),
-            self.extract(4),
-            self.extract(4),
-            self.extract(6),
-            self.extract(6),
-        );
-        let scaling_real = f64x8::new(
-            self.extract(1),
-            self.extract(1),
-            self.extract(3),
-            self.extract(3),
-            self.extract(5),
-            self.extract(5),
-            self.extract(7),
-            self.extract(7),
-        );
+        let values = self.as_array();
+        let scaling_imag = f64x8::from_array([
+            values[0], values[0], values[2], values[2], values[4], values[4], values[6], values[6],
+        ]);
+        let scaling_real = f64x8::from_array([
+            values[1], values[1], values[3], values[3], values[5], values[5], values[7], values[7],
+        ]);
+
         let parallel = scaling_real * value;
-        let shuffled = unsafe { _mm512_permute_pd(value, SWAP_IQ_PD) };
+        let shuffled = self.swap_iq();
         let cross = scaling_imag * shuffled;
-        let mul = unsafe { _mm512_addsub_pd(parallel, cross) };
+        let ones = f64x8::splat(1.0);
+        let mul: f64x8 = unsafe {
+            mem::transmute(_mm512_fmaddsub_pd(
+                mem::transmute(parallel),
+                mem::transmute(ones),
+                mem::transmute(cross),
+            ))
+        };
         let square = shuffled * shuffled;
-        let square_shuffled = unsafe { _mm512_permute_pd(square, SWAP_IQ_PD) };
+        let square_shuffled = square.swap_iq();
         let sum = square + square_shuffled;
         let div = mul / sum;
-        unsafe { _mm512_permute_pd(div, SWAP_IQ_PD) }
+        div.swap_iq()
     }
 
     #[inline]
     fn complex_abs_squared(self) -> f64x8 {
         let squared = self * self;
-        unsafe { _mm512_hadd_pd(squared, squared) }
+        let ones = f64x8::splat(1.0);
+        unsafe {
+            mem::transmute(_mm512_fmaddsub_ps(
+                mem::transmute(squared),
+                mem::transmute(ones),
+                mem::transmute(squared),
+            ))
+        }
     }
 
     #[inline]
     fn complex_abs(self) -> f64x8 {
         let squared_sum = self.complex_abs_squared();
-        unsafe { _mm512_sqrt_pd(squared_sum) }
+        StdFloat::sqrt(squared_sum)
     }
 
     #[inline]
     fn sqrt(self) -> f64x8 {
-        unsafe { _mm512_sqrt_pd(self) }
+        StdFloat::sqrt(self)
     }
-
     #[inline]
     fn store_half(self, target: &mut [f64], index: usize) {
-        target[index] = self.extract(0);
-        target[index + 1] = self.extract(1);
-        target[index + 2] = self.extract(2);
-        target[index + 3] = self.extract(3);
+        let values = self.as_array();
+        target[index] = values[0];
+        target[index + 1] = values[1];
+        target[index + 2] = values[2];
+        target[index + 3] = values[3];
     }
 
     #[inline]
     fn sum_real(&self) -> f64 {
-        self.extract(0)
-            + self.extract(1)
-            + self.extract(2)
-            + self.extract(3)
-            + self.extract(4)
-            + self.extract(5)
-            + self.extract(6)
-            + self.extract(7)
+        let values = self.as_array();
+        values[0]
+            + values[1]
+            + values[2]
+            + values[3]
+            + values[4]
+            + values[5]
+            + values[6]
+            + values[7]
     }
 
     #[inline]
     fn sum_complex(&self) -> Complex<f64> {
+        let values = self.as_array();
         Complex::<f64>::new(
-            self.extract(0) + self.extract(2) + self.extract(4) + self.extract(6),
-            self.extract(1) + self.extract(3) + self.extract(5) + self.extract(7),
+            values[0] + values[2] + values[4] + values[6],
+            values[1] + values[3] + values[5] + values[7],
         )
     }
 
     #[inline]
     fn max(self, other: Self) -> Self {
-        self.max(other)
+        self.simd_max(other)
     }
 
     #[inline]
     fn min(self, other: Self) -> Self {
-        self.min(other)
+        self.simd_min(other)
+    }
+
+    #[inline]
+    fn swap_iq(self) -> Self {
+        unsafe { mem::transmute(_mm512_permute_pd(mem::transmute(self), SWAP_IQ_PS)) }
     }
 }
 
 impl SimdFrom<f32x16> for i32x16 {
     fn regfrom(value: f32x16) -> Self {
-        Self::from_cast(value)
+        value.cast::<i32>()
     }
 }
 
 impl SimdFrom<i32x16> for f32x16 {
-    fn regfrom(value: f32x16) -> Self {
-        Self::from_cast(value)
+    fn regfrom(value: i32x16) -> Self {
+        value.cast::<f32>()
     }
 }
 
 impl SimdFrom<f64x8> for i64x8 {
     fn regfrom(value: f64x8) -> Self {
-        Self::from_cast(value)
+        value.cast::<i64>()
     }
 }
 
 impl SimdFrom<i64x8> for f64x8 {
-    fn regfrom(value: f64x8) -> Self {
-        Self::from_cast(value)
+    fn regfrom(value: i64x8) -> Self {
+        value.cast::<f64>()
     }
 }

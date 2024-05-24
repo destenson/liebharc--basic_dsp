@@ -66,6 +66,9 @@
 //! complex vectors in time domain, but not with real valued vectors or frequency domain vectors.
 //! And the type `GenDspVec` serves as wild card at compile time since it defers all checks to run time.
 
+#![feature(portable_simd)]
+#![feature(stdarch_x86_avx512)]
+
 extern crate arrayvec;
 #[cfg(feature = "use_gpu")]
 extern crate clfft;
@@ -82,8 +85,6 @@ extern crate num_cpus;
 extern crate num_traits;
 #[cfg(feature = "use_gpu")]
 extern crate ocl;
-#[cfg(feature = "use_simd")]
-extern crate packed_simd;
 extern crate rustfft;
 #[macro_use]
 mod simd_extensions;
@@ -165,9 +166,9 @@ pub mod numbers {
         #[cfg(not(all(feature = "use_sse2", target_feature = "sse2")))]
         type RegSse = simd_extensions::fallback::f32x4;
 
-        #[cfg(all(feature = "use_avx2", target_feature = "avx2"))]
+        #[cfg(all(feature = "use_avx2"))]
         type RegAvx = simd_extensions::avx::f32x8;
-        #[cfg(not(all(feature = "use_avx2", target_feature = "avx2")))]
+        #[cfg(not(all(feature = "use_avx2")))]
         type RegAvx = simd_extensions::fallback::f32x4;
 
         #[cfg(feature = "use_avx512")]

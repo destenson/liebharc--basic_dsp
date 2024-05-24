@@ -1,6 +1,4 @@
 use crate::numbers::*;
-#[cfg(all(feature = "use_simd"))]
-use packed_simd::*;
 use std;
 use std::mem;
 use std::ops::*;
@@ -255,17 +253,17 @@ macro_rules! simd_generic_impl {
 
             #[inline]
             fn load(array: &[$data_type], idx: usize) -> Self {
-                Self::from_slice_unaligned(&array[idx..idx + Self::LEN])
+                Self::from_slice(&array[idx..idx + Self::LEN])
             }
 
             #[inline]
             fn store(self, array: &mut [$data_type], index: usize) {
-                self.write_to_slice_unaligned(&mut array[index..index + Self::LEN])
+                self.copy_to_slice(&mut array[index..index + Self::LEN])
             }
 
             #[inline]
             fn extract(self, idx: usize) -> $data_type {
-                $mod::$reg::extract(self, idx)
+                $mod::$reg::to_array(self)[idx]
             }
 
             #[inline]
@@ -283,11 +281,11 @@ simd_generic_impl!(f32, avx512::f32x16); // Type isn't implemented in simd
 #[cfg(feature = "use_avx512")]
 simd_generic_impl!(f64, avx512::f64x8); // Type isn't implemented in simd
 
-#[cfg(all(feature = "use_avx2", target_feature = "avx2"))]
+#[cfg(all(feature = "use_avx2"))]
 pub mod avx;
-#[cfg(all(feature = "use_avx2", target_feature = "avx2"))]
+#[cfg(all(feature = "use_avx2"))]
 simd_generic_impl!(f32, avx::f32x8);
-#[cfg(all(feature = "use_avx2", target_feature = "avx2"))]
+#[cfg(all(feature = "use_avx2"))]
 simd_generic_impl!(f64, avx::f64x4);
 
 #[cfg(feature = "use_sse2")]

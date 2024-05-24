@@ -23,12 +23,12 @@ impl f32x4 {
     }
 
     #[inline]
-    pub fn from_slice_unaligned(array: &[f32]) -> Self {
+    pub fn from_slice(array: &[f32]) -> Self {
         f32x4(array[0], array[1], array[2], array[3])
     }
 
     #[inline]
-    pub fn write_to_slice_unaligned(self, array: &mut [f32]) {
+    pub fn copy_to_slice(self, array: &mut [f32]) {
         array[0] = self.extract(0);
         array[1] = self.extract(1);
         array[2] = self.extract(2);
@@ -59,12 +59,12 @@ impl f64x2 {
     }
 
     #[inline]
-    pub fn from_slice_unaligned(array: &[f64]) -> Self {
+    pub fn from_slice(array: &[f64]) -> Self {
         f64x2(array[0], array[1])
     }
 
     #[inline]
-    pub fn write_to_slice_unaligned(self, array: &mut [f64]) {
+    pub fn copy_to_slice(self, array: &mut [f64]) {
         array[0] = self.extract(0);
         array[1] = self.extract(1);
     }
@@ -149,7 +149,7 @@ impl Simd<f32> for f32x4 {
     #[inline]
     fn to_array(self) -> Self::Array {
         let mut target = [0.0; 4];
-        self.write_to_slice_unaligned(&mut target);
+        self.copy_to_slice(&mut target);
         target
     }
 
@@ -286,7 +286,7 @@ impl Simd<f64> for f64x2 {
     #[inline]
     fn to_array(self) -> Self::Array {
         let mut target = [0.0; 2];
-        self.write_to_slice_unaligned(&mut target);
+        self.copy_to_slice(&mut target);
         target
     }
 

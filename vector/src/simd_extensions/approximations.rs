@@ -24,10 +24,11 @@
 
 use super::{Simd, SimdApproximations, SimdFrom};
 use crate::numbers::*;
-use crate::Zero;
-use packed_simd::*;
 use std::mem;
 use std::ops::*;
+use std::simd::cmp::{SimdPartialEq, SimdPartialOrd};
+use std::simd::num::SimdFloat;
+use std::simd::*;
 
 macro_rules! simd_approx_impl {
     ($data_type: ident,
@@ -79,7 +80,7 @@ macro_rules! simd_approx_impl {
                 let log_q1 = $regf::splat(-2.12194440e-4);
                 let log_q2 = $regf::splat(0.693359375);
 
-                let invalid_mask: $regm = x.le($regf::zero());
+                let invalid_mask: $regm = x.is_sign_negative();
                 let x = unsafe { Simd::<$data_type>::max(x, mem::transmute(min_norm_pos)) }; // cut off denormalized stuff
                 let x: $regi = unsafe { mem::transmute(x) };
                 let emm0 = x.shr(mant_len);
@@ -94,7 +95,7 @@ macro_rules! simd_approx_impl {
                 let e: $regf = $regf::regfrom(emm0);
                 let e = e + one;
 
-                let mask: $regm = unsafe { x.lt(mem::transmute(sqrthf)) };
+                let mask: $regm = unsafe { x.simd_lt(mem::transmute(sqrthf)) };
                 let masku: $regu = unsafe { mem::transmute(mask) };
                 let tmp: $regu = x.bitand(masku);
                 let x: $regf = unsafe { mem::transmute(x) };
@@ -181,7 +182,7 @@ macro_rules! simd_approx_impl {
                 let tmp = $regf::regfrom(emm0);
 
                 // if greater, substract 1
-                let mask: $regm = tmp.gt(fx);
+                let mask: $regm = tmp.simd_gt(fx);
                 let mask: $regm = mask.bitand(onem);
                 let mask: $regf = unsafe { mem::transmute(mask) };
                 let fx = tmp - mask;
@@ -287,7 +288,7 @@ macro_rules! simd_approx_impl {
                 //
                 // Both branches will be computed.
                 let emm2 = emm2.bitand(two);
-                let emm2 = emm2.eq($regi::splat(0));
+                let emm2 = emm2.simd_eq($regi::splat(0));
 
                 let poly_mask = emm2;
                 let sign_bit = if is_sin { sign_bit.bitxor(emm0) } else { emm0 };
@@ -344,24 +345,25 @@ macro_rules! simd_approx_impl {
 }
 
 #[cfg(all(feature = "use_sse2", target_feature = "sse2"))]
-simd_approx_impl!(f32, 32, f32x4, i32x4, u32x4, m32x4);
+simd_approx_impl!(f32, 32, f32x4, i32x4, u32x4, mask32x4);
 #[cfg(all(feature = "use_sse2", target_feature = "sse2"))]
-simd_approx_impl!(f64, 64, f64x2, i64x2, u64x2, m64x2);
+simd_approx_impl!(f64, 64, f64x2, i64x2, u64x2, mask64x2);
 
-#[cfg(all(feature = "use_avx2", target_feature = "avx2"))]
-simd_approx_impl!(f32, 32, f32x8, i32x8, u32x8, m32x8);
-#[cfg(all(feature = "use_avx2", target_feature = "avx2"))]
-simd_approx_impl!(f64, 64, f64x4, i64x4, u64x4, m64x4);
-#[cfg(all(feature = "use_avx512", target_feature = "avx512vl"))]
-simd_approx_impl!(f32, 32, f32x16, i32x16, u32x16, m32x16);
-#[cfg(all(feature = "use_avx512", target_feature = "avx512vl"))]
-simd_approx_impl!(f64, 64, f64x8, i64x8, u64x8, m64x8);
+#[cfg(all(feature = "use_avx2"))]
+simd_approx_impl!(f32, 32, f32x8, i32x8, u32x8, mask32x8);
+#[cfg(all(feature = "use_avx2"))]
+simd_approx_impl!(f64, 64, f64x4, i64x4, u64x4, mask64x4);
+#[cfg(all(feature = "use_avx512"))]
+simd_approx_impl!(f32, 32, f32x16, i32x16, u32x16, mask32x16);
+#[cfg(all(feature = "use_avx512"))]
+simd_approx_impl!(f64, 64, f64x8, i64x8, u64x8, mask64x8);
 
 #[cfg(test)]
 #[cfg(all(feature = "use_sse2", target_feature = "sse2"))]
 mod tests {
     use super::super::*;
     use crate::RealNumber;
+    use std::simd::{f32x4, f64x2};
 
     fn assert_eq_tol<T>(left: T, right: T, tol: T)
     where
