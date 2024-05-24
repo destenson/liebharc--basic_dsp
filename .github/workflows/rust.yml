@@ -15,7 +15,7 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly
+          #- nightly disabled as nightly can't compile crossbeam dependencies right now on github
           - 1.67.0
 
     steps:
