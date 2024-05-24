@@ -45,7 +45,7 @@ where
 
     /// Stores the first half of the vector in an array.
     /// Useful e.g. in combination with `complex_abs_squared`.
-    fn store_half(self, target: &mut [T], index: usize);
+    fn store_real(self, target: &mut [T], index: usize);
 
     /// Multiplies the register with a complex value.
     fn mul_complex(self, value: Self) -> Self;

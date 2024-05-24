@@ -486,7 +486,7 @@ where
                     let mut j = 0;
                     for reg in array {
                         let result = simd_op(*reg, argument);
-                        result.store_half(target, j);
+                        result.store_real(target, j);
                         j += Reg::LEN / 2;
                     }
                 },

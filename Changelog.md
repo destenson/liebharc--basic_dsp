@@ -1,3 +1,7 @@
+## Version 0.10.2
+
+- Switched from packed_simd to `std::simd`. Warning: I no longer have a CPU which supports AVX512, so this option is untested and likely broken.
+
 ## Version 0.10.1
 
 - Updated dependencies, thanks to Alex Touchet for his help!

@@ -119,8 +119,8 @@ impl Simd<f32> for f32x16 {
 
     #[inline]
     fn div_complex(self, value: f32x16) -> f32x16 {
-        let value_arr = value.as_array();
-        let scaling_real = f32x16::from_array([
+        let value_arr = self.as_array();
+        let scaling_imag = f32x16::from_array([
             value_arr[0],
             value_arr[0],
             value_arr[2],
@@ -138,7 +138,7 @@ impl Simd<f32> for f32x16 {
             value_arr[14],
             value_arr[14],
         ]);
-        let scaling_imag = f32x16::from_array([
+        let scaling_real = f32x16::from_array([
             value_arr[1],
             value_arr[1],
             value_arr[3],
@@ -157,7 +157,7 @@ impl Simd<f32> for f32x16 {
             value_arr[15],
         ]);
         let parallel = scaling_real * value;
-        let shuffled = self.swap_iq();
+        let shuffled = value.swap_iq();
         let cross = scaling_imag * shuffled;
         let ones = f32x16::splat(1.0);
         let mul: f32x16 = unsafe {
@@ -198,11 +198,16 @@ impl Simd<f32> for f32x16 {
         StdFloat::sqrt(self)
     }
     #[inline]
-    fn store_half(self, target: &mut [f32], index: usize) {
+    fn store_real(self, target: &mut [f32], index: usize) {
         let values = self.as_array();
-        for (i, &value) in values.iter().enumerate() {
-            target[index + i] = value;
-        }
+        target[index] = values[0];
+        target[index + 1] = values[1];
+        target[index + 2] = values[4];
+        target[index + 3] = values[5];
+        target[index + 4] = values[8];
+        target[index + 5] = values[9];
+        target[index + 6] = values[12];
+        target[index + 7] = values[13];
     }
     #[inline]
     fn sum_real(&self) -> f32 {
@@ -401,12 +406,12 @@ impl Simd<f64> for f64x8 {
         StdFloat::sqrt(self)
     }
     #[inline]
-    fn store_half(self, target: &mut [f64], index: usize) {
+    fn store_real(self, target: &mut [f64], index: usize) {
         let values = self.as_array();
         target[index] = values[0];
         target[index + 1] = values[1];
-        target[index + 2] = values[2];
-        target[index + 3] = values[3];
+        target[index + 2] = values[4];
+        target[index + 3] = values[5];
     }
 
     #[inline]

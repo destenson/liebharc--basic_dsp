@@ -111,7 +111,7 @@ fn main() {
         print!("{:?}, ", value);
     }
     println!("");
-    let mut sorted: Vec<_> = results.keys().map(|x| x.clone()).collect();
+    let mut sorted: Vec<_> = results.keys().map(|x| (*x)).collect();
     sorted.sort();
     for key in &sorted {
         print!("{:?} [ns], ", key);

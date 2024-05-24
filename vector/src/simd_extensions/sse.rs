@@ -119,7 +119,7 @@ impl Simd<f32> for f32x4 {
         StdFloat::sqrt(self)
     }
     #[inline]
-    fn store_half(self, target: &mut [f32], index: usize) {
+    fn store_real(self, target: &mut [f32], index: usize) {
         let values = self.as_array();
         target[index] = values[0];
         target[index + 1] = values[1];
@@ -231,7 +231,7 @@ impl Simd<f64> for f64x2 {
     }
 
     #[inline]
-    fn store_half(self, target: &mut [f64], index: usize) {
+    fn store_real(self, target: &mut [f64], index: usize) {
         let values = self.as_array();
         target[index] = values[0];
     }
@@ -304,5 +304,42 @@ mod tests {
         assert_eq!(result_values[1], vec_values[0]);
         assert_eq!(result_values[2], vec_values[3]);
         assert_eq!(result_values[3], vec_values[2]);
+    }
+    
+    #[test]
+    fn complex_abs_squared_f32() {
+        let vec = f32x4::from_array([1.0, 2.0, 3.0, 4.0]);
+        let result = vec.complex_abs_squared();
+        let complex1 = Complex::<f32>::new(1.0, 2.0);
+        let complex2 = Complex::<f32>::new(3.0, 4.0);
+
+        assert_eq!(result[0], complex1.norm_sqr());
+        assert_eq!(result[1], complex2.norm_sqr());
+    }
+
+    #[test]
+    fn complex_abs_squared_test_f64() {
+        let vec = f64x2::from_array([1.0, 2.0]);
+        let result = vec.complex_abs_squared();
+        let complex1 = Complex::<f64>::new(1.0, 2.0);
+
+        assert_eq!(result[0], complex1.norm_sqr());
+    }
+
+    #[test]
+    fn div_complex_test_f32() {
+        let vec = f32x4::from_array([1.0, 2.0, 3.0, 4.0]);
+        let vec2 = f32x4::from_array([3.0, 4.0, 1.0, 2.0]);
+        let result = vec.div_complex(vec2);
+        let complex1 = Complex::<f32>::new(1.0, 2.0);
+        let complex2 = Complex::<f32>::new(3.0, 4.0);
+
+        let result1 = complex1 / complex2;
+        let result2 = complex2 / complex1;
+
+        assert_eq!(result[0], result1.re);
+        assert_eq!(result[1], result1.im);
+        assert_eq!(result[2], result2.re);
+        assert_eq!(result[3], result2.im);
     }
 }

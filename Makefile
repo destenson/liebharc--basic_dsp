@@ -68,11 +68,11 @@ test_all: test
 ifeq ($(RUST_NIGHTLY), nightly)
 	$(CARGO_CMD) clean
 	$(CARGO_CMD) test --manifest-path vector/Cargo.toml --no-default-features --lib
-	$(CARGO_CMD) test --no-default-features --features std,use_sse2
-	$(CARGO_CMD) test --no-default-features --features std,use_avx2
+	$(CARGO_CMD) test --no-default-features --features std,use_sse2,matrix
+	$(CARGO_CMD) test --no-default-features --features std,use_avx2,matrix
 else
 	$(CARGO_CMD) clean
-	$(CARGO_CMD) test --manifest-path vector/Cargo.toml --no-default-features --lib
+	$(CARGO_CMD) test --manifest-path vector/Cargo.toml --features matrix --no-default-features --lib
 endif
 
 run-all:

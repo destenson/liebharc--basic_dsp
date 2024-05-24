@@ -208,7 +208,7 @@ impl Simd<f32> for f32x4 {
     #[inline]
     fn complex_abs_squared(self) -> f32x4 {
         let squared = self * self;
-        f32x4::new(squared.0 + squared.1, squared.2 + squared.3, 0.0, 0.0)
+        f32x4::new(squared.0 + squared.1, 0.0, squared.2 + squared.3, 0.0)
     }
 
     #[inline]
@@ -216,8 +216,8 @@ impl Simd<f32> for f32x4 {
         let squared = self * self;
         f32x4::new(
             (squared.0 + squared.1).sqrt(),
-            (squared.2 + squared.3).sqrt(),
             0.0,
+            (squared.2 + squared.3).sqrt(),
             0.0,
         )
     }
@@ -228,9 +228,9 @@ impl Simd<f32> for f32x4 {
     }
 
     #[inline]
-    fn store_half(self, target: &mut [f32], index: usize) {
+    fn store_real(self, target: &mut [f32], index: usize) {
         target[index] = self.extract(0);
-        target[index + 1] = self.extract(1);
+        target[index + 1] = self.extract(2);
     }
 
     #[inline]
@@ -350,7 +350,7 @@ impl Simd<f64> for f64x2 {
     }
 
     #[inline]
-    fn store_half(self, target: &mut [f64], index: usize) {
+    fn store_real(self, target: &mut [f64], index: usize) {
         target[index] = self.extract(0);
     }
 

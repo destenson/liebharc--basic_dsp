@@ -96,11 +96,11 @@ impl Simd<f32> for f32x8 {
 
     #[inline]
     fn div_complex(self, value: f32x8) -> f32x8 {
-        let values = value.as_array();
-        let scaling_real = f32x8::from_array([
+        let values = self.as_array();
+        let scaling_imag = f32x8::from_array([
             values[0], values[0], values[2], values[2], values[4], values[4], values[6], values[6],
         ]);
-        let scaling_imag = f32x8::from_array([
+        let scaling_real = f32x8::from_array([
             values[1], values[1], values[3], values[3], values[5], values[5], values[7], values[7],
         ]);
         let parallel = scaling_real * value;
@@ -141,12 +141,12 @@ impl Simd<f32> for f32x8 {
         StdFloat::sqrt(self)
     }
     #[inline]
-    fn store_half(self, target: &mut [f32], index: usize) {
+    fn store_real(self, target: &mut [f32], index: usize) {
         let values = self.as_array();
         target[index] = values[0];
         target[index + 1] = values[1];
-        target[index + 2] = values[2];
-        target[index + 3] = values[3];
+        target[index + 2] = values[4];
+        target[index + 3] = values[5];
     }
 
     #[inline]
@@ -252,7 +252,7 @@ impl Simd<f64> for f64x4 {
 
         let parallel = scaling_real * value;
         let shuffled = value.swap_iq();
-        let cross = scaling_imag * shuffled;
+        let cross = scaling_imag * shuffled;        
         let mul: f64x4 = unsafe {
             mem::transmute(_mm256_addsub_pd(
                 mem::transmute(parallel),
@@ -271,8 +271,8 @@ impl Simd<f64> for f64x4 {
         let squared = self * self;
         unsafe {
             mem::transmute(_mm256_hadd_pd(
-                mem::transmute(squared),
-                mem::transmute(squared),
+                        mem::transmute(squared),
+                        mem::transmute(squared),
             ))
         }
     }
@@ -288,10 +288,10 @@ impl Simd<f64> for f64x4 {
         StdFloat::sqrt(self)
     }
     #[inline]
-    fn store_half(self, target: &mut [f64], index: usize) {
+    fn store_real(self, target: &mut [f64], index: usize) {
         let values = self.as_array();
         target[index] = values[0];
-        target[index + 1] = values[1];
+        target[index + 1] = values[2];
     }
 
     #[inline]
@@ -308,12 +308,12 @@ impl Simd<f64> for f64x4 {
 
     #[inline]
     fn max(self, other: Self) -> Self {
-        self.max(other)
+        self.simd_max(other)
     }
 
     #[inline]
     fn min(self, other: Self) -> Self {
-        self.min(other)
+        self.simd_min(other)
     }
 
     #[inline]
@@ -378,5 +378,99 @@ mod tests {
         assert_eq!(result_values[1], vec_values[0]);
         assert_eq!(result_values[2], vec_values[3]);
         assert_eq!(result_values[3], vec_values[2]);
+    }
+
+    #[test]
+    fn complex_abs_test_f32() {
+        let vec = f32x8::from_array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        let result = vec.complex_abs();
+        let complex1 = Complex::<f32>::new(1.0, 2.0);
+        let complex2 = Complex::<f32>::new(3.0, 4.0);
+        let complex3 = Complex::<f32>::new(5.0, 6.0);
+        let complex4 = Complex::<f32>::new(7.0, 8.0);
+
+        assert_eq!(result[0], complex1.norm());
+        assert_eq!(result[1], complex2.norm());
+        assert_eq!(result[4], complex3.norm());
+        assert_eq!(result[5], complex4.norm());
+    }
+    
+    #[test]
+    fn complex_abs_squared_f32() {
+        let vec = f32x8::from_array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        let result = vec.complex_abs_squared();
+        let complex1 = Complex::<f32>::new(1.0, 2.0);
+        let complex2 = Complex::<f32>::new(3.0, 4.0);
+        let complex3 = Complex::<f32>::new(5.0, 6.0);
+        let complex4 = Complex::<f32>::new(7.0, 8.0);
+
+        assert_eq!(result[0], complex1.norm_sqr());
+        assert_eq!(result[1], complex2.norm_sqr());
+        assert_eq!(result[4], complex3.norm_sqr());
+        assert_eq!(result[5], complex4.norm_sqr());
+    }
+
+    #[test]
+    fn complex_abs_test_f64() {
+        let vec = f64x4::from_array([1.0, 2.0, 3.0, 4.0]);
+        let result = vec.complex_abs();
+        let complex1 = Complex::<f64>::new(1.0, 2.0);
+        let complex2 = Complex::<f64>::new(3.0, 4.0);
+
+        assert_eq!(result[0], complex1.norm());
+        assert_eq!(result[2], complex2.norm());
+    }
+
+    #[test]
+    fn complex_abs_squared_test_f64() {
+        let vec = f64x4::from_array([1.0, 2.0, 3.0, 4.0]);
+        let result = vec.complex_abs_squared();
+        let complex1 = Complex::<f64>::new(1.0, 2.0);
+        let complex2 = Complex::<f64>::new(3.0, 4.0);
+
+        assert_eq!(result[0], complex1.norm_sqr());
+        assert_eq!(result[2], complex2.norm_sqr());
+    }
+
+    #[test]
+    fn div_complex_test_f32() {
+        let vec = f32x8::from_array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+        let vec2 = f32x8::from_array([3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 1.0, 2.0]);
+        let result = vec.div_complex(vec2);
+        let complex1 = Complex::<f32>::new(1.0, 2.0);
+        let complex2 = Complex::<f32>::new(3.0, 4.0);
+        let complex3 = Complex::<f32>::new(5.0, 6.0);
+        let complex4 = Complex::<f32>::new(7.0, 8.0);
+
+        let result1 = complex1 / complex2;
+        let result2 = complex2 / complex3;
+        let result3 = complex3 / complex4;
+        let result4 = complex4 / complex1;
+
+        assert_eq!(result[0], result1.re);
+        assert_eq!(result[1], result1.im);
+        assert_eq!(result[2], result2.re);
+        assert_eq!(result[3], result2.im);
+        assert_eq!(result[4], result3.re);
+        assert_eq!(result[5], result3.im);
+        assert_eq!(result[6], result4.re);
+        assert_eq!(result[7], result4.im);
+    }
+    #[test]
+    fn div_complex_test_f64() {
+        let vec = f64x4::from_array([1.0, 2.0, 3.0, 4.0]);
+        let vec2 = f64x4::from_array([3.0, 4.0, 5.0, 6.0]);
+        let result = vec.div_complex(vec2);
+        let complex1 = Complex::<f64>::new(1.0, 2.0);
+        let complex2 = Complex::<f64>::new(3.0, 4.0);
+        let complex3 = Complex::<f64>::new(5.0, 6.0);
+
+        let result1 = complex1 / complex2;
+        let result2 = complex2 / complex3;
+
+        assert_eq!(result[0], result1.re);
+        assert_eq!(result[1], result1.im);
+        assert_eq!(result[2], result2.re);
+        assert_eq!(result[3], result2.im);
     }
 }
