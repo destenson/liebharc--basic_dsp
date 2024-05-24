@@ -134,7 +134,7 @@ impl Simd<f32> for f32x4 {
     #[inline]
     fn sum_complex(&self) -> Complex<f32> {
         let values = self.as_array();
-        Complex::<f32>::new(values[0] + values[1], values[2] + values[3])
+        Complex::<f32>::new(values[0] + values[2], values[1] + values[3])
     }
 
     #[inline]
