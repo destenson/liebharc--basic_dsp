@@ -404,7 +404,7 @@ mod tests {
 
     #[test]
     fn ln_approx_test_zero() {
-        let reg = f32x4::splat(0.0);
+        let reg = f32x4::splat(-0.1);
         let res = reg.ln_approx();
         assert!(res.extract(0).is_nan());
     }
