@@ -25,7 +25,7 @@ use crate::multicore_support::*;
 use crate::numbers::*;
 use crate::simd_extensions::*;
 use crate::{array_to_complex, array_to_complex_mut};
-use rustfft::{FftPlanner, FftDirection};
+use rustfft::{FftDirection, FftPlanner};
 use std::fmt::Debug;
 use std::ops::*;
 
@@ -48,13 +48,13 @@ where
             let mut planner = FftPlanner::new();
             planner.plan_fft(points, direction)
         };
-        let mut temp = buffer.borrow(2 * fft.get_inplace_scratch_len());  // By two since the FFT is done with complex numbers
+        let mut temp = buffer.borrow(2 * fft.get_inplace_scratch_len()); // By two since the FFT is done with complex numbers
         let scratch = temp.to_slice_mut();
         let signal = vec.data.to_slice_mut();
         let rbw = (T::from(points).unwrap()) * vec.delta;
         vec.delta = rbw;
         let signal = array_to_complex_mut(&mut signal[0..len]);
-        let scratch  = array_to_complex_mut(scratch);
+        let scratch = array_to_complex_mut(scratch);
         fft.process_with_scratch(signal, scratch);
     } else {
         let signal = vec.data.to_slice_mut();

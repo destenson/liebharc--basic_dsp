@@ -8,19 +8,16 @@ extern crate basic_dsp_vector;
 
 use basic_dsp_vector::numbers::*;
 use basic_dsp_vector::*;
-use std::{
-    mem::ManuallyDrop,
-    ptr
-};
+use std::{mem::ManuallyDrop, ptr};
 
 mod mat_impl;
 pub use self::mat_impl::*;
 mod to_from_mat_conversions;
 pub use self::to_from_mat_conversions::*;
-mod general;
-mod rededicate;
 mod complex;
+mod general;
 mod real;
+mod rededicate;
 mod time_freq;
 
 /// A matrix which can hold 1 to N vectors.
@@ -263,7 +260,7 @@ impl<S, D> TransformContent<S, D> for [S; 3] {
         F: FnMut(S) -> D,
     {
         let self_forget = ManuallyDrop::new(self);
-        
+
         unsafe {
             [
                 conversion(ptr::read(&self_forget[0])),

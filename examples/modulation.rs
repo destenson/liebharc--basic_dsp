@@ -29,7 +29,6 @@ fn main() {
             .expect("Failed to create baseband time file");
         complex_vector_to_file(&complex, &mut file).expect("Failed to write baseband time file");
 
-
         let real = complex.to_real();
 
         let mut file = File::create(format!("modulated_time{}.csv", i))

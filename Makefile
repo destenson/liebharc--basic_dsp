@@ -31,6 +31,12 @@ update:
     
 build:
 	$(MAKE) run-all TASK="build"
+
+format:
+	cargo fmt
+	cargo fmt --manifest-path vector/Cargo.toml
+	cargo fmt --manifest-path matrix/Cargo.toml
+	cargo fmt --manifest-path interop/Cargo.toml
       
 build_all: build
 ifeq ($(RUST_NIGHTLY), nightly)

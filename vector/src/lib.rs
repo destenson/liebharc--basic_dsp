@@ -33,7 +33,7 @@
 //! dsp_vec.interpolatei(&mut buffer, &RaisedCosineFunction::new(0.35), 2).unwrap();
 //! let vec: Vec<f64> = dsp_vec.into();
 //! assert_eq!(vec.len(), 2000);
-//! ```` 
+//! ````
 //!
 //! DSP algorithms are often executed in loops. If you work with large vectors you typically try to avoid
 //! allocating buffers in every iteration. Preallocating buffers is a common practice to safe a little time

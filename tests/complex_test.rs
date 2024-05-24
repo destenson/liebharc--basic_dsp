@@ -634,6 +634,5 @@ mod complex_test {
         assert_eq!(2, target.len());
         assert_eq!(2, target.points());
         assert_eq!(10, target.alloc_len());
-
     }
 }

@@ -69,7 +69,7 @@ impl<'a, T: RealNumber + 'a> ToSlice<T> for SingleBufferBurrow<'a, T> {
     }
 }
 
-impl<'a, T: RealNumber + 'a> ToSliceMut<T> for SingleBufferBurrow<'a, T>  {
+impl<'a, T: RealNumber + 'a> ToSliceMut<T> for SingleBufferBurrow<'a, T> {
     fn to_slice_mut(&mut self) -> &mut [T] {
         self.owner.temp.to_slice_mut()
     }
@@ -114,7 +114,9 @@ where
     type Borrow = SingleBufferBurrow<'a, T>;
 
     fn borrow(&'a mut self, len: usize) -> Self::Borrow {
-        self.temp.try_resize(len).expect("Resizing a Vec must be possible");
+        self.temp
+            .try_resize(len)
+            .expect("Resizing a Vec must be possible");
         SingleBufferBurrow { owner: self }
     }
 
@@ -153,7 +155,7 @@ impl<T: RealNumber> ToSlice<T> for NoBufferBurrow<T> {
     }
 }
 
-impl<T: RealNumber > ToSliceMut<T> for NoBufferBurrow<T>  {
+impl<T: RealNumber> ToSliceMut<T> for NoBufferBurrow<T> {
     fn to_slice_mut(&mut self) -> &mut [T] {
         self.data.to_slice_mut()
     }
@@ -605,11 +607,10 @@ where
 }
 
 impl<T, D> From<DspVec<Vec<T>, T, meta::Real, D>> for Vec<T>
-where 
+where
     T: RealNumber,
     D: Domain,
-    {
-
+{
     fn from(mut vector: DspVec<Vec<T>, T, meta::Real, D>) -> Self {
         let len = vector.valid_len;
         vector.data.truncate(len);
@@ -618,11 +619,10 @@ where
 }
 
 impl<T, D> From<DspVec<Vec<T>, T, meta::Complex, D>> for Vec<Complex<T>>
-where 
+where
     T: RealNumber,
     D: Domain,
-    {
-
+{
     fn from(mut vector: DspVec<Vec<T>, T, meta::Complex, D>) -> Self {
         let len = vector.valid_len;
         vector.data.truncate(len);
@@ -672,10 +672,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::complex_vec_to_interleaved_vec;
-    use num_complex::Complex32;
     use super::super::*;
+    use super::complex_vec_to_interleaved_vec;
     use crate::conv_types::*;
+    use num_complex::Complex32;
 
     #[test]
     fn complex_vec_to_interleaved_vec_test() {
@@ -694,7 +694,9 @@ mod tests {
         let mut buffer = SingleBuffer::new();
         assert_eq!(dsp_vec.points(), 100);
         assert_eq!(dsp_vec.len(), 100);
-        dsp_vec.interpolatei(&mut buffer, &RaisedCosineFunction::new(0.35), 2).unwrap();
+        dsp_vec
+            .interpolatei(&mut buffer, &RaisedCosineFunction::new(0.35), 2)
+            .unwrap();
         assert_eq!(dsp_vec.points(), 200);
         assert_eq!(dsp_vec.len(), 200);
         let vec: Vec<f64> = dsp_vec.into();
@@ -707,7 +709,9 @@ mod tests {
         let mut buffer = SingleBuffer::new();
         assert_eq!(dsp_vec.points(), 50);
         assert_eq!(dsp_vec.len(), 100);
-        dsp_vec.interpolatei(&mut buffer, &RaisedCosineFunction::new(0.35), 2).unwrap();
+        dsp_vec
+            .interpolatei(&mut buffer, &RaisedCosineFunction::new(0.35), 2)
+            .unwrap();
         assert_eq!(dsp_vec.points(), 100);
         assert_eq!(dsp_vec.len(), 200);
         let vec: Vec<Complex<f64>> = dsp_vec.into();

@@ -624,7 +624,7 @@ impl<'a, T: RealNumber + 'a> ToSlice<T> for NoTradeBufferBurrow<'a, T> {
     }
 }
 
-impl<'a, T: RealNumber + 'a> ToSliceMut<T> for NoTradeBufferBurrow<'a, T>  {
+impl<'a, T: RealNumber + 'a> ToSliceMut<T> for NoTradeBufferBurrow<'a, T> {
     fn to_slice_mut(&mut self) -> &mut [T] {
         self.data.to_slice_mut()
     }
@@ -675,7 +675,9 @@ where
     type Borrow = NoTradeBufferBurrow<'a, T>;
 
     fn borrow(&'a mut self, len: usize) -> Self::Borrow {
-        self.data.try_resize(len).expect("NoTradeBuffer: Out of memory");
+        self.data
+            .try_resize(len)
+            .expect("NoTradeBuffer: Out of memory");
         NoTradeBufferBurrow {
             data: &mut self.data.to_slice_mut()[0..len],
         }

@@ -382,11 +382,18 @@ macro_rules! assert_meta_data {
 
 macro_rules! impl_binary_vector_operation {
     (fn $method: ident, $arg_name: ident, $simd_op: ident, $scal_op: ident) => {
-        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(&mut self, _: RegType<Reg>, $arg_name: &O) -> VoidResult
-        {
+        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(
+            &mut self,
+            _: RegType<Reg>,
+            $arg_name: &O,
+        ) -> VoidResult {
             {
                 let len = self.len();
-                reject_if!(self, len != $arg_name.len(), ErrorReason::InputMustHaveTheSameSize);
+                reject_if!(
+                    self,
+                    len != $arg_name.len(),
+                    ErrorReason::InputMustHaveTheSameSize
+                );
                 assert_meta_data!(self, $arg_name);
 
                 let data_length = self.len();
@@ -394,36 +401,50 @@ macro_rules! impl_binary_vector_operation {
                 let partition = Reg::calc_data_alignment_reqs(&array[0..data_length]);
                 let other = $arg_name.data(..);
                 Chunk::from_src_to_dest(
-                    Complexity::Small, &self.multicore_settings,
-                    partition.center(other), Reg::LEN,
-                    partition.center_mut(array), Reg::LEN, (),
+                    Complexity::Small,
+                    &self.multicore_settings,
+                    partition.center(other),
+                    Reg::LEN,
+                    partition.center_mut(array),
+                    Reg::LEN,
+                    (),
                     |original, range, target, _arg| {
                         let mut i = range.start;
-                        let target =
-                            Reg::array_to_regs_mut(&mut target[..]);
+                        let target = Reg::array_to_regs_mut(&mut target[..]);
                         for dst in &mut target[..] {
-                             *dst = dst.$simd_op(Reg::load(original, i));
+                            *dst = dst.$simd_op(Reg::load(original, i));
                             i += Reg::LEN;
                         }
-                });
+                    },
+                );
 
-                for (n, o) in partition.edge_iter_mut(array).zip(partition.edge_iter(other)) {
+                for (n, o) in partition
+                    .edge_iter_mut(array)
+                    .zip(partition.edge_iter(other))
+                {
                     *n = n.$scal_op(*o);
                 }
             }
 
             Ok(())
         }
-    }
+    };
 }
 
 macro_rules! impl_binary_complex_vector_operation {
     (fn $method: ident, $arg_name: ident, $simd_op: ident, $scal_op: ident) => {
-        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(&mut self, _: RegType<Reg>, $arg_name: &O) -> VoidResult
-        {
+        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(
+            &mut self,
+            _: RegType<Reg>,
+            $arg_name: &O,
+        ) -> VoidResult {
             {
                 let len = self.len();
-                reject_if!(self, len != $arg_name.len(), ErrorReason::InputMustHaveTheSameSize);
+                reject_if!(
+                    self,
+                    len != $arg_name.len(),
+                    ErrorReason::InputMustHaveTheSameSize
+                );
                 assert_meta_data!(self, $arg_name);
 
                 let data_length = self.len();
@@ -431,75 +452,105 @@ macro_rules! impl_binary_complex_vector_operation {
                 let partition = Reg::calc_data_alignment_reqs(&array[0..data_length]);
                 let other = $arg_name.data(..);
                 Chunk::from_src_to_dest(
-                    Complexity::Small, &self.multicore_settings,
-                    partition.center(other), Reg::LEN,
-                    partition.center_mut(array), Reg::LEN, (),
+                    Complexity::Small,
+                    &self.multicore_settings,
+                    partition.center(other),
+                    Reg::LEN,
+                    partition.center_mut(array),
+                    Reg::LEN,
+                    (),
                     |original, range, target, _arg| {
                         let mut i = range.start;
-                        let target =
-                            Reg::array_to_regs_mut(&mut target[..]);
+                        let target = Reg::array_to_regs_mut(&mut target[..]);
                         for dst in &mut target[..] {
-                             *dst = dst.$simd_op(Reg::load(original, i));
+                            *dst = dst.$simd_op(Reg::load(original, i));
                             i += Reg::LEN;
                         }
-                });
+                    },
+                );
 
-                for (n, o) in partition.cedge_iter_mut(array_to_complex_mut(array)).zip(partition.cedge_iter(array_to_complex(other))) {
+                for (n, o) in partition
+                    .cedge_iter_mut(array_to_complex_mut(array))
+                    .zip(partition.cedge_iter(array_to_complex(other)))
+                {
                     *n = n.$scal_op(*o);
                 }
             }
 
             Ok(())
         }
-    }
+    };
 }
 
 macro_rules! impl_binary_smaller_vector_operation {
     (fn $method: ident, $arg_name: ident, $simd_op: ident, $scal_op: ident) => {
-        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(&mut self, _: RegType<Reg>, $arg_name: &O) -> VoidResult
-        {
+        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(
+            &mut self,
+            _: RegType<Reg>,
+            $arg_name: &O,
+        ) -> VoidResult {
             {
                 let len = self.len();
-                reject_if!(self, len % $arg_name.len() != 0, ErrorReason::InvalidArgumentLength);
+                reject_if!(
+                    self,
+                    len % $arg_name.len() != 0,
+                    ErrorReason::InvalidArgumentLength
+                );
                 assert_meta_data!(self, $arg_name);
 
                 let data_length = self.len();
                 let array = self.data.to_slice_mut();
                 let other = $arg_name.data(..);
                 Chunk::from_src_to_dest(
-                    Complexity::Small, &self.multicore_settings,
-                    &other, Reg::LEN,
-                    &mut array[0..data_length], 1, (),
+                    Complexity::Small,
+                    &self.multicore_settings,
+                    &other,
+                    Reg::LEN,
+                    &mut array[0..data_length],
+                    1,
+                    (),
                     |operand, range, target, _arg| {
                         let mut i = range.start;
                         for n in &mut target[..] {
                             *n = n.$scal_op(operand[i % operand.len()]);
                             i += 1;
                         }
-                });
+                    },
+                );
             }
 
             Ok(())
         }
-    }
+    };
 }
 
 macro_rules! impl_binary_smaller_complex_vector_ops {
     (fn $method: ident, $arg_name: ident, $simd_op: ident, $scal_op: ident) => {
-        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(&mut self, _: RegType<Reg>, $arg_name: &O) -> VoidResult
-        {
+        fn $method<Reg: SimdGeneric<T>, O: Vector<T>>(
+            &mut self,
+            _: RegType<Reg>,
+            $arg_name: &O,
+        ) -> VoidResult {
             {
                 let len = self.len();
-                reject_if!(self, len % $arg_name.len() != 0, ErrorReason::InvalidArgumentLength);
+                reject_if!(
+                    self,
+                    len % $arg_name.len() != 0,
+                    ErrorReason::InvalidArgumentLength
+                );
                 assert_meta_data!(self, $arg_name);
 
                 let data_length = self.len();
                 let array = self.data.to_slice_mut();
                 let other = $arg_name.data(..);
                 Chunk::from_src_to_dest(
-                    Complexity::Small, &self.multicore_settings,
-                    &other, Reg::LEN,
-                    &mut array[0..data_length], 2, (),
+                    Complexity::Small,
+                    &self.multicore_settings,
+                    &other,
+                    Reg::LEN,
+                    &mut array[0..data_length],
+                    2,
+                    (),
                     |operand, range, target, _arg| {
                         let target = array_to_complex_mut(&mut target[..]);
                         let operand = array_to_complex(&operand[..]);
@@ -508,12 +559,13 @@ macro_rules! impl_binary_smaller_complex_vector_ops {
                             *n = n.$scal_op(operand[i % operand.len()]);
                             i += 1;
                         }
-                });
+                    },
+                );
             }
 
             Ok(())
         }
-    }
+    };
 }
 
 impl<S, T, N, D> DspVec<S, T, N, D>

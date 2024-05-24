@@ -11,8 +11,8 @@ mod fallback;
 pub use self::fallback::*;
 
 use crate::numbers::*;
-use std::ops::Range;
 use rustfft::FftDirection;
+use std::ops::Range;
 
 /// Trait which adds GPU support to types like `f32` and `f64`.
 pub trait GpuSupport<T: RealNumber> {

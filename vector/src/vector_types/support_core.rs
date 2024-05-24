@@ -39,7 +39,7 @@ impl<'a, T: RealNumber + 'a> ToSlice<T> for FixedLenBufferBurrow<'a, T> {
     }
 }
 
-impl<'a, T: RealNumber + 'a> ToSliceMut<T> for FixedLenBufferBurrow<'a, T>  {
+impl<'a, T: RealNumber + 'a> ToSliceMut<T> for FixedLenBufferBurrow<'a, T> {
     fn to_slice_mut(&mut self) -> &mut [T] {
         self.data.to_slice_mut()
     }
@@ -329,10 +329,7 @@ where
         }
     }
 
-    fn to_dsp_vec<N, D>(
-        self,
-        meta_data: &TypeMetaData<A, N, D>,
-    ) -> DspVec<Self, A, N, D>
+    fn to_dsp_vec<N, D>(self, meta_data: &TypeMetaData<A, N, D>) -> DspVec<Self, A, N, D>
     where
         N: NumberSpace,
         D: Domain,

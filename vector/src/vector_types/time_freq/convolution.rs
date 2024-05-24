@@ -335,12 +335,16 @@ where
         let ifft = planner.plan_fft_inverse(fft_len);
         let step_size = fft_len - overlap;
         let filter_response_padded_len = 2 * fft_len;
-        let scratch_len = 2 * std::cmp::max(fft.get_inplace_scratch_len(), fft.get_outofplace_scratch_len()); // Times 2 as the fft is complex
+        let scratch_len = 2 * std::cmp::max(
+            fft.get_inplace_scratch_len(),
+            fft.get_outofplace_scratch_len(),
+        ); // Times 2 as the fft is complex
         let signal_freq_len = 2 * fft_len;
         let tmp_len = 2 * fft_len;
         let remainder_len = x_len - x_len % fft_len;
-        let mut array =
-            buffer.borrow(filter_response_padded_len + scratch_len + signal_freq_len + tmp_len + remainder_len);
+        let mut array = buffer.borrow(
+            filter_response_padded_len + scratch_len + signal_freq_len + tmp_len + remainder_len,
+        );
         {
             let array = array.to_slice_mut();
             let (scratch, array) = array.split_at_mut(scratch_len);
@@ -349,9 +353,11 @@ where
             let (filter_response_padded, array) = array.split_at_mut(filter_response_padded_len);
             let end = array;
             let filter_response = filter_response.data.to_slice();
-            (&mut filter_response_padded[0..2 * imp_len]).copy_from_slice(&filter_response[0..2 * imp_len]);
+            (&mut filter_response_padded[0..2 * imp_len])
+                .copy_from_slice(&filter_response[0..2 * imp_len]);
 
-            let mut filter_response_padded = (&mut filter_response_padded[..]).to_complex_time_vec();
+            let mut filter_response_padded =
+                (&mut filter_response_padded[..]).to_complex_time_vec();
             filter_response_padded
                 .resize(2 * imp_len)
                 .expect("Shrinking a vector should always succeed");
@@ -364,9 +370,11 @@ where
             let filter_response: &[Complex<T>] = array_to_complex(&filter_response[..]);
             let filter_response_padded: &mut [Complex<T>] =
                 array_to_complex_mut(&mut filter_response_padded[0..2 * fft_len]);
-            let signal_time: &mut [Complex<T>] = array_to_complex_mut(&mut signal_time[0..2 * x_len]);
+            let signal_time: &mut [Complex<T>] =
+                array_to_complex_mut(&mut signal_time[0..2 * x_len]);
             let scratch: &mut [Complex<T>] = array_to_complex_mut(scratch);
-            let signal_freq: &mut [Complex<T>] = array_to_complex_mut(&mut signal_freq[0..2 * fft_len]);
+            let signal_freq: &mut [Complex<T>] =
+                array_to_complex_mut(&mut signal_freq[0..2 * fft_len]);
             let tmp: &mut [Complex<T>] = array_to_complex_mut(&mut tmp[0..2 * fft_len]);
             let end: &mut [Complex<T>] = array_to_complex_mut(&mut end[0..remainder_len]);
             fft.process_with_scratch(filter_response_padded, scratch);
@@ -421,10 +429,17 @@ where
                     // (3) The first iteration is different since it copies over the results which have been calculated for the beginning
                     (&mut overlap_buffer[..])
                         .copy_from_slice(&signal_time[position + step_size..position + fft_len]);
-                    fft.process_outofplace_with_scratch(&mut signal_time[range], signal_freq, scratch);
+                    fft.process_outofplace_with_scratch(
+                        &mut signal_time[range],
+                        signal_freq,
+                        scratch,
+                    );
                     // Copy over the results of the scalar convolution (1)
                     (&mut signal_time[0..imp_len / 2]).copy_from_slice(&tmp[0..imp_len / 2]);
-                    for (n, v) in (&mut signal_freq[..]).iter_mut().zip(filter_response_padded.iter()) {
+                    for (n, v) in (&mut signal_freq[..])
+                        .iter_mut()
+                        .zip(filter_response_padded.iter())
+                    {
                         *n = *n * *v / scaling;
                     }
                     ifft.process_outofplace_with_scratch(signal_freq, tmp, scratch);
@@ -437,11 +452,18 @@ where
                         .copy_from_slice(&overlap_buffer[..]);
                     (&mut overlap_buffer[..])
                         .copy_from_slice(&signal_time[position + step_size..position + fft_len]);
-                    fft.process_outofplace_with_scratch(&mut signal_time[range], signal_freq, scratch);
+                    fft.process_outofplace_with_scratch(
+                        &mut signal_time[range],
+                        signal_freq,
+                        scratch,
+                    );
                     // (4) Same as (3) except that the results of the previous iteration gets copied over
                     (&mut signal_time[position - step_size + imp_len / 2..position + imp_len / 2])
                         .copy_from_slice(&tmp[imp_len - 1..fft_len]);
-                    for (n, v) in (&mut signal_freq[..]).iter_mut().zip(filter_response_padded.iter()) {
+                    for (n, v) in (&mut signal_freq[..])
+                        .iter_mut()
+                        .zip(filter_response_padded.iter())
+                    {
                         *n = *n * *v / scaling;
                     }
                     ifft.process_outofplace_with_scratch(signal_freq, tmp, scratch);
@@ -711,7 +733,12 @@ mod tests {
         let sinc: SincFunction<f32> = SincFunction::new();
         let ratio = 0.5;
         freq.multiply_frequency_response(&sinc as &dyn RealFrequencyResponse<f32>, 1.0 / ratio);
-        time.convolve(&mut buffer, &sinc as &dyn RealImpulseResponse<f32>, 0.5, len);
+        time.convolve(
+            &mut buffer,
+            &sinc as &dyn RealImpulseResponse<f32>,
+            0.5,
+            len,
+        );
         let ifft = freq.ifft(&mut buffer).magnitude();
         let time = time.magnitude();
         assert_eq!(ifft.is_complex(), time.is_complex());

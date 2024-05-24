@@ -4,6 +4,7 @@ mod ocl_kernels64;
 use self::ocl_kernels32 as o32;
 use self::ocl_kernels64 as o64;
 use super::GpuSupport;
+use crate::{array_to_complex, array_to_complex_mut, RealNumber, Zero};
 use clfft::{builder, ClFftPrm, Direction, Layout, Precision};
 use ocl::builders::ProgramBuilder;
 use ocl::enums::*;
@@ -11,11 +12,10 @@ use ocl::flags::DeviceType;
 use ocl::prm::{Double2, Float4};
 use ocl::traits::{OclPrm, OclVec};
 use ocl::*;
+use rustfft::FftDirection;
 use std::cmp;
 use std::mem;
 use std::ops::Range;
-use rustfft::FftDirection;
-use crate::{array_to_complex, array_to_complex_mut, RealNumber, Zero};
 
 /// This trait is required to interface between `basic_dsp` and `opencl`.
 /// Without the feature flag `use_gpu` is will default to a `num` trait so

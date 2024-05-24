@@ -895,7 +895,8 @@ pub extern "C" fn real_statistics_split_prec64(
     len: usize,
 ) -> i32 {
     let data = unsafe { slice::from_raw_parts_mut(data, len) };
-    let vec = &vector.vec as &dyn PreciseStatisticsSplitOps<f64, Result = StatsVec<Statistics<f64>>>;
+    let vec =
+        &vector.vec as &dyn PreciseStatisticsSplitOps<f64, Result = StatsVec<Statistics<f64>>>;
     let stats = vec.statistics_split_prec(data.len());
     match stats {
         Ok(s) => {

@@ -2,8 +2,8 @@
 //! needs to be considered in a small section of the lib and the rest remains unaffected.
 use super::GpuSupport;
 use crate::numbers::*;
-use std::ops::Range;
 use rustfft::FftDirection;
+use std::ops::Range;
 
 pub type Gpu32 = f32;
 

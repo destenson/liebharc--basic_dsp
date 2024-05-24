@@ -136,7 +136,7 @@ where
     type Output;
 
     /// Gets the underlying storage and the number of elements which
-    /// contain valid data. In case of complex vectors the values are returned real-imag pairs. 
+    /// contain valid data. In case of complex vectors the values are returned real-imag pairs.
     /// Refer to [`Into`](https://doc.rust-lang.org/std/convert/trait.Into.html) or [`FromVector`](trait.FromVector.html#)
     /// for a method which returns the data of complex vectors in a different manner.
     /// # Example
@@ -172,8 +172,8 @@ where
     /// it's more straightforward to use.
     ///
     /// Gets the underlying storage and the number of elements which
-    /// contain valid data. Therefore a caller should only use the first `valid data` elements from the storage. 
-    /// The remaining elements (if there are any) might have been allocated during the calculations but contain 
+    /// contain valid data. Therefore a caller should only use the first `valid data` elements from the storage.
+    /// The remaining elements (if there are any) might have been allocated during the calculations but contain
     /// no useful information.
     /// # Example
     ///
