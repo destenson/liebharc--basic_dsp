@@ -66,8 +66,8 @@
 //! complex vectors in time domain, but not with real valued vectors or frequency domain vectors.
 //! And the type `GenDspVec` serves as wild card at compile time since it defers all checks to run time.
 
-#![feature(portable_simd)]
-#![feature(stdarch_x86_avx512)]
+#![cfg_attr(feature = "use_simd", feature(portable_simd))]
+#![cfg_attr(feature = "use_simd", feature(stdarch_x86_avx512))]
 
 extern crate arrayvec;
 #[cfg(feature = "use_gpu")]
